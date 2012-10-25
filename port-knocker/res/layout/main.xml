@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+    <!--
+    <TextView
+        android:layout_width="fill_parent" android:layout_height="wrap_content"
+        android:layout_marginBottom="2pt"
+        android:gravity="center" android:textSize="12pt"
+        android:text="@string/app_name"
+        />
+    -->
+    <ListView
+        android:id="@+id/hostlistView"
+        android:layout_width="fill_parent" android:layout_height="wrap_content"
+        android:layout_weight="1"
+        />
+    <Button
+        android:id="@+id/KnockButton"
+        android:layout_width="fill_parent" android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/knock"
+        />
+    <TextView
+        android:layout_width="fill_parent" android:layout_height="wrap_content"
+        android:gravity="center" android:textSize="4pt"
+        android:text="@string/copyright"
+        />
+</LinearLayout>

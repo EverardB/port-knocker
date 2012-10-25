@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="eu.htcl.android.portknocker"
+          android:versionCode="1" android:versionName="1.0">
+
+    <application android:icon="@drawable/icon" android:label="@string/app_name">
+        <!--  elements for activities -->
+        <activity android:name=".MainAndroidActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="EditHostActivity"></activity>
+        <activity android:name="Settings"></activity>
+
+        <!-- elements for services -->
+
+        <!-- elements for broadcast receivers -->
+
+        <!-- elements for content providers -->
+
+    </application>
+
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+
+</manifest>
+

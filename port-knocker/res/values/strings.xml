@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Port Knocker</string>
+    <string name="knock">Knock</string>
+    <string name="copyright">Copyright (c) 2012 HTCL Limited (under GPL3 license)</string>
+</resources>
