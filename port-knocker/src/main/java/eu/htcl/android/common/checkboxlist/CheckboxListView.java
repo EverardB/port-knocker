@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.htcl.android.common.checkboxlist;
 
 import android.content.Context;
@@ -10,7 +6,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
 import java.util.List;
 
 /**
@@ -33,7 +28,7 @@ public class CheckboxListView extends ListView {
         super(context, attrs, defStyle);
     }
 
-    public void initialise(Context context, List<CheckboxListRow> listItems) {
+    public void initialise(Context context, int resource, int textViewResourceId, int checkBoxResourceId, List<CheckboxListRow> listItems) {
         // When item is tapped, toggle 'selected' property of CheckBox and text.
         setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -54,7 +49,7 @@ public class CheckboxListView extends ListView {
         });
 
         // Set our custom array adapter as the ListView's adapter.
-        listAdapter = new SelectArrayAdapter(context, listItems);
+        listAdapter = new SelectArrayAdapter(context, resource, textViewResourceId, checkBoxResourceId, listItems);
 
         setAdapter(listAdapter);
     }

@@ -211,7 +211,7 @@ public class MainAndroidActivity extends Activity {
             checkboxListRows.addAll(Arrays.asList(hostData));
 
             // Set our custom array adapter as the ListView's adapter.
-            listAdapter = new SelectArrayAdapter(this, checkboxListRows);
+            listAdapter = new SelectArrayAdapter(this, R.layout.checkbox_list_row, R.id.rowText, R.id.selectedCheckBox, checkboxListRows);
             hostlistView.setAdapter(listAdapter);
         } else {
             // TBD: Update is OK but causes NPE onItemClick()

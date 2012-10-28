@@ -27,12 +27,6 @@ public class DBAdapter {
     public static final String KEY_SELECTED = "selected";
     public static final String KEY_POPULARITY = "popularity";
 
-    /*
-     * Opertaions
-     */
-    public static final int START_MODE = 0;
-    public static final int STOP_MODE = 1;
-
     public class HostData extends CheckboxListRow {
 
         private DBAdapter db;

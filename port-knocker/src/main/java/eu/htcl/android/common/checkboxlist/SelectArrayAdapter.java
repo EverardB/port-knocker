@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.htcl.android.common.checkboxlist;
 
 import android.content.Context;
@@ -11,10 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
-
 import java.util.List;
-
-import eu.htcl.android.portknocker.R;
 
 /**
  *
@@ -26,8 +19,17 @@ public class SelectArrayAdapter extends ArrayAdapter<CheckboxListRow> {
 
     private LayoutInflater inflater;
 
-    public SelectArrayAdapter(Context context, List<CheckboxListRow> list) {
-        super(context, R.layout.checkbox_list_row, R.id.rowText, list);
+    private int rowResourceId;
+    private int textViewResourceId;
+    private int checkBoxResourceId;
+
+    public SelectArrayAdapter(Context context, int resource, int textViewResourceId, int checkBoxResourceId, List<CheckboxListRow> list) {
+        super(context, resource, textViewResourceId, list);
+
+        // Keep a local copy of the resource IDs
+        this.rowResourceId = resource;
+        this.textViewResourceId = textViewResourceId;
+        this.checkBoxResourceId = checkBoxResourceId;
 
         // Cache the LayoutInflate to avoid asking for a new one each time.
         inflater = LayoutInflater.from(context);
@@ -44,11 +46,11 @@ public class SelectArrayAdapter extends ArrayAdapter<CheckboxListRow> {
 
         // Create a new row view
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.checkbox_list_row, null);
+            convertView = inflater.inflate(rowResourceId, null);
 
             // Find the child views.
-            textView = (TextView) convertView.findViewById(R.id.rowText);
-            checkBox = (CheckBox) convertView.findViewById(R.id.selectedCheckBox);
+            textView = (TextView) convertView.findViewById(textViewResourceId);
+            checkBox = (CheckBox) convertView.findViewById(checkBoxResourceId);
 
             // Tag the row with it's child views, so we don't have to
             // call findViewById() later when we reuse the row.

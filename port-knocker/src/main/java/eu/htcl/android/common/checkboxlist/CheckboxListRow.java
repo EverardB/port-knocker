@@ -1,10 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.htcl.android.common.checkboxlist;
-
-import android.view.View;
 
 /**
  *
