@@ -1,4 +1,5 @@
 /.settings/
+server-list.sql
 
 /port-knocker/.settings/
 /port-knocker/target/
@@ -6,4 +7,3 @@
 /port-knocker-it/.settings/
 /port-knocker-it/target/
 
-/.gitk-tmp.27571/

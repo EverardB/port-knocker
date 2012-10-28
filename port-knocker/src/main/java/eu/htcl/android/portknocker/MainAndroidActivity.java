@@ -27,7 +27,6 @@ import java.util.Arrays;
  */
 public class MainAndroidActivity extends Activity {
 
-    private static final int ACTIVITY_SETTINGS = 0;
     private static String TAG = "port-knocker";
     //private CheckboxListView hostlistView;
     private ListView hostlistView;
@@ -133,9 +132,13 @@ public class MainAndroidActivity extends Activity {
         }
     }
 
-    void editHost(long id) {
-        //long dataId = (long) hostData[(int) id].getId();
+    void addHost() {
+        Intent intent = new Intent(this, EditHostActivity.class);
+        intent.putExtra(EditHostActivity.OPERATION, EditHostActivity.NEW);
+        startActivityForResult(intent, 0);
+    }
 
+    void editHost(long id) {
         //AlertDialog.Builder alert = new AlertDialog.Builder(this);
         //alert.setTitle("Port knocking");
         //alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
@@ -144,13 +147,10 @@ public class MainAndroidActivity extends Activity {
         Intent intent = new Intent(this, EditHostActivity.class);
         intent.putExtra(DBAdapter.KEY_ID, id);
         intent.putExtra(EditHostActivity.OPERATION, EditHostActivity.EDIT);
-        //startActivity(intent);
-         startActivityForResult(intent, 0);
+        startActivityForResult(intent, 0);
     }
 
     void copyHost(long id) {
-        //long dataId = (long) hostData[(int) id].getId();
-
         //AlertDialog.Builder alert = new AlertDialog.Builder(this);
         //alert.setTitle("Port knocking");
         //alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
@@ -159,13 +159,10 @@ public class MainAndroidActivity extends Activity {
         Intent intent = new Intent(this, EditHostActivity.class);
         intent.putExtra(DBAdapter.KEY_ID, id);
         intent.putExtra(EditHostActivity.OPERATION, EditHostActivity.COPY);
-        //startActivity(intent);
-         startActivityForResult(intent, 0);
+        startActivityForResult(intent, 0);
     }
 
     void deleteHost(long id) {
-        //int dataId = hostData[(int) id].getId();
-
         //AlertDialog.Builder alert = new AlertDialog.Builder(this);
         //alert.setTitle("Port knocking");
         //alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
@@ -173,6 +170,27 @@ public class MainAndroidActivity extends Activity {
 
         // Are u sure ?
         dbadapter.deleteHost(id);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        MenuItem menuit = menu.add(0, Menu.FIRST, 0, "Add host");
+        menuit.setIcon(android.R.drawable.ic_menu_add);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        switch (item.getItemId()) {
+            case Menu.FIRST:
+                addHost();
+                updateListView();
+                return true;
+            default:
+                return super.onMenuItemSelected(featureId, item);
+        }
+
     }
 
     @Override
@@ -235,7 +253,6 @@ public class MainAndroidActivity extends Activity {
         d = ProgressDialog.show(view.getContext(), "Port knocking ...", "Please wait ...", true);
 
         new Thread(new Runnable() {
-
             public void run() {
                 for (int i = 0; i < hostData.length; i++) {
 
@@ -293,26 +310,6 @@ public class MainAndroidActivity extends Activity {
         }
 
         alert.show();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        MenuItem menuit = menu.add(0, Menu.FIRST, 0, "Settings");
-        menuit.setIcon(android.R.drawable.ic_menu_preferences);
-        return true;
-    }
-
-    @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        switch (item.getItemId()) {
-            case Menu.FIRST:
-                Intent i = new Intent(this, Settings.class);
-                startActivityForResult(i, ACTIVITY_SETTINGS);
-                return true;
-        }
-
-        return super.onMenuItemSelected(featureId, item);
     }
 
     @Override
