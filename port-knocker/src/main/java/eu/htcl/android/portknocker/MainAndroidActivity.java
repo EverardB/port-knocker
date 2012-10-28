@@ -121,11 +121,11 @@ public class MainAndroidActivity extends Activity {
                 updateListView();
                 return true;
             case R.id.up:
-                dbadapter.upHost((long) hostData[(int) info.id].getId());
+                dbadapter.upHostPopularity((long) hostData[(int) info.id].getId());
                 updateListView();
                 return true;
             case R.id.down:
-                dbadapter.downHost((long) hostData[(int) info.id].getId());
+                dbadapter.downHostPopularity((long) hostData[(int) info.id].getId());
                 updateListView();
                 return true;
             default:
@@ -265,6 +265,7 @@ public class MainAndroidActivity extends Activity {
 
                         if (success) {
                             hostData[i].setSelected(false);
+                            dbadapter.upHostPopularity(hostData[i].getId());
                         }
                     }
                 }

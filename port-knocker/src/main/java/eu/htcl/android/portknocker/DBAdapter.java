@@ -25,6 +25,7 @@ public class DBAdapter {
     public static final String KEY_HOST = "host";
     public static final String KEY_KNOCK_SEQUENCE = "knock_sequence";
     public static final String KEY_SELECTED = "selected";
+    public static final String KEY_POPULARITY = "popularity";
 
     /*
      * Opertaions
@@ -112,6 +113,14 @@ public class DBAdapter {
                 + " UPDATE hosts "
                 + " SET popularity=old.popularity WHERE popularity=new.popularity; "
                 + "END;";
+        private static final String LIMIT_POPULARITY_TRIGGER =
+                "CREATE TRIGGER limit_popularity_before_update "
+                + "BEFORE INSERT OR UPDATE OF popularity "
+                + "ON hosts "
+                + "BEGIN "
+                + " UPDATE hosts "
+                + " SET popularity=old.popularity WHERE _id=new._id AND popularity=(SELECT MAX(popularity)); "
+                + "END;";
 
         public HostdataOpenHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -121,8 +130,9 @@ public class DBAdapter {
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_TABLE);
 
-            db.execSQL(DELETE_TRIGGER);
-            db.execSQL(UPDATE_TRIGGER);
+            //db.execSQL(DELETE_TRIGGER);
+            //db.execSQL(UPDATE_TRIGGER);
+            //db.execSQL(LIMIT_POPULARITY_TRIGGER);
         }
 
         @Override
@@ -267,6 +277,44 @@ public class DBAdapter {
         db.update("hosts", args, KEY_ID + "=" + id, null);
     }
 
+    public int getPopularity(long id) {
+        Cursor c = getRawHost(id, KEY_POPULARITY);
+        int popularity = c.getInt(0);
+        c.close();
+
+        return popularity;
+    }
+
+    public void setPopularity(long id, int popularity) {
+        ContentValues args = new ContentValues();
+        args.put(KEY_POPULARITY, popularity);
+        db.update("hosts", args, KEY_ID + "=" + id, null);
+    }
+
+    public int getMaxPopularity() {
+        int maxPopularity = 0;
+        Cursor c = db.query("hosts", new String[]{"MAX(popularity)"}, null, null, null, null, null);
+        if (c != null) {
+            c.moveToFirst();
+            maxPopularity = c.getInt(0);
+        }
+        c.close();
+
+        return maxPopularity;
+    }
+
+    public int getNumAtMaxPopularity() {
+        int maxPopularity = 0;
+        Cursor c = db.query("hosts", new String[]{"COUNT(*)"}, "popularity = (SELECT MAX(popularity) FROM hosts)", null, null, null, null);
+        if (c != null) {
+            c.moveToFirst();
+            maxPopularity = c.getInt(0);
+        }
+        c.close();
+
+        return maxPopularity;
+    }
+
     public Cursor getRawHost(long id) {
         Cursor c = db.query("hosts", null, "_id = " + String.valueOf(id), null, null, null, null);
         if (c != null) {
@@ -333,11 +381,21 @@ public class DBAdapter {
         db.delete("hosts", KEY_ID + "=" + id, null);
     }
 
-    public void upHost(long id) {
-        db.execSQL("UPDATE hosts SET popularity = popularity+1 WHERE _id=?", new Object[]{id});
+    public void upHostPopularity(long id) {
+        int currentPopularity = getPopularity(id);
+        int maxPopularity = getMaxPopularity();
+        int numAtMaxPopularity = getNumAtMaxPopularity();
+
+        if ( (currentPopularity == maxPopularity) &&
+             ((numAtMaxPopularity == 1) || (currentPopularity != 0)) ) {
+            // Do nothing if this item is already most popular
+            // return;
+        } else {
+            setPopularity(id, (currentPopularity+1)) ;
+        }
     }
 
-    public void downHost(long id) {
-        db.execSQL("UPDATE hosts SET popularity = popularity-1 WHERE _id=?", new Object[]{id});
+    public void downHostPopularity(long id) {
+        db.execSQL("UPDATE hosts SET popularity = MAX(popularity-1,0) WHERE _id=?", new Object[]{id});
     }
 }
