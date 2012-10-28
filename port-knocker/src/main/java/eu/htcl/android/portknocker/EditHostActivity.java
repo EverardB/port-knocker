@@ -13,36 +13,33 @@ import android.widget.EditText;
  */
 public class EditHostActivity extends Activity {
 
-    private Long rowid;
     private DBAdapter dbadapter;
+    private int operation;
+    private Long id;
     private EditText wHost;
     private EditText wKnockSequence;
-    private Button wCancelButton;
-    private int activity_mode = DBAdapter.START_MODE;
 
+    /*
+     * operation constants
+     */
+    public static final String OPERATION = "operation";
+    public static final int NEW = 0;
+    public static final int EDIT = 1;
+    public static final int COPY = 2;
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.hostedit);
-        this.setTitle("Add a host");
 
         dbadapter = new DBAdapter(this.getApplicationContext());
         dbadapter.open();
 
-        wHost = (EditText) findViewById(R.id.EditText01);
-        wKnockSequence = (EditText) findViewById(R.id.EditText02);
+        wHost = (EditText) findViewById(R.id.hostText);
+        wKnockSequence = (EditText) findViewById(R.id.knockSequenceText);
 
-        wCancelButton = (Button) findViewById(R.id.Button02);
-        wCancelButton.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View view) {
-                setResult(RESULT_CANCELED);
-                finish();
-            }
-        });
-
-        Button savebutton = (Button) findViewById(R.id.Button01);
-        savebutton.setOnClickListener(new View.OnClickListener() {
-
+        Button saveButton = (Button) findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 commit();
 
@@ -51,19 +48,50 @@ public class EditHostActivity extends Activity {
             }
         });
 
+        Button cancelButton = (Button) findViewById(R.id.cancelButton);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
+
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            activity_mode = extras.getInt(DBAdapter.KEY_SELECTED);
-            if (extras.containsKey(DBAdapter.KEY_ID)) {
-                rowid = extras.getLong(DBAdapter.KEY_ID);
-                populateFields();
+            if (extras.containsKey(OPERATION)) {
+                operation = extras.getInt(OPERATION);
+                switch (operation) {
+                    case NEW:
+                        this.setTitle("New host");
+                        id = null;
+                        break;
+
+                    case EDIT:
+                        if (extras.containsKey(DBAdapter.KEY_ID)) {
+                            this.setTitle("Edit host");
+                            id = extras.getLong(DBAdapter.KEY_ID);
+                            populateFields();
+                        }
+                        break;
+
+                    case COPY:
+                        if (extras.containsKey(DBAdapter.KEY_ID)) {
+                            this.setTitle("New host");
+                            id = extras.getLong(DBAdapter.KEY_ID);
+                            populateFields();
+                            id = null;
+                        }
+                        break;
+                }
             }
         }
     }
 
     private void populateFields() {
-        if (rowid != null) {
-            Cursor host = dbadapter.getRawHost(rowid);
+        if (id != null) {
+            Cursor host = dbadapter.getRawHost(id);
+
             startManagingCursor(host);
 
             wHost.setText(host.getString(host.getColumnIndexOrThrow(DBAdapter.KEY_HOST)));
@@ -72,10 +100,10 @@ public class EditHostActivity extends Activity {
     }
 
     private void commit() {
-        if (rowid == null) {
-            dbadapter.createHost(wHost.getText().toString(), wKnockSequence.getText().toString(), activity_mode);
+        if (id == null) {
+            dbadapter.createHost(wHost.getText().toString(), wKnockSequence.getText().toString());
         } else {
-            dbadapter.updateHost(rowid, wHost.getText().toString(), wKnockSequence.getText().toString());
+            dbadapter.updateHost(id, wHost.getText().toString(), wKnockSequence.getText().toString());
         }
     }
 }

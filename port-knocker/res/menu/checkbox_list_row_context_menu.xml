@@ -11,6 +11,9 @@
           android:icon="@android:drawable/ic_menu_edit"
           android:title="Edit"
           />
+    <item android:id="@+id/copy_host"
+          android:title="Copy"
+          />
     <item android:id="@+id/up"
           android:title="Move up"
           />

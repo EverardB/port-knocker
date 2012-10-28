@@ -39,8 +39,8 @@ public class SelectArrayAdapter extends ArrayAdapter<CheckboxListRow> {
         CheckboxListRow checkboxListRow = (CheckboxListRow) this.getItem(position);
 
         // The child views in each row.
-        CheckBox checkBox;
         TextView textView;
+        CheckBox checkBox;
 
         // Create a new row view
         if (convertView == null) {
@@ -52,14 +52,37 @@ public class SelectArrayAdapter extends ArrayAdapter<CheckboxListRow> {
 
             // Tag the row with it's child views, so we don't have to
             // call findViewById() later when we reuse the row.
-            convertView.setTag(new SelectViewHolder(textView, checkBox));
+            SelectViewHolder viewHolder = new SelectViewHolder(textView, checkBox);
+            convertView.setTag(viewHolder);
+            checkboxListRow.setViewHolder(viewHolder);
 
-            // If CheckBox is toggled, update the checkboxListRow it is tagged with.
+            // If View is tapped, update the checkboxListRow it is associated (tagged) with.
+            //convertView.setOnClickListener(new View.OnClickListener() {
+            //    public void onClick(View v) {
+            //        SelectViewHolder viewHolder = (SelectViewHolder) v.getTag();
+            //        CheckboxListRow checkboxListRow = (CheckboxListRow) viewHolder.getCheckBox().getTag();
+            //        checkboxListRow.toggleSelected();
+            //        viewHolder.getCheckBox().setChecked(checkboxListRow.isSelected());
+            //    }
+            //});
+
+            // If TextView is tapped, update the checkboxListRow it is associated (tagged) with.
+            //textView.setOnClickListener(new View.OnClickListener() {
+            //    public void onClick(View v) {
+            //        TextView textView = (TextView) v;
+            //        CheckboxListRow checkboxListRow = (CheckboxListRow) textView.getTag();
+            //        SelectViewHolder viewHolder = checkboxListRow.getViewHolder();
+            //        checkboxListRow.toggleSelected();
+            //        viewHolder.getCheckBox().setChecked(checkboxListRow.isSelected());
+            //    }
+            //});
+
+            // If CheckBox is toggled, update the checkboxListRow it is associated (tagged) with.
             checkBox.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    CheckBox cb = (CheckBox) v;
-                    CheckboxListRow checkboxListRow = (CheckboxListRow) cb.getTag();
-                    checkboxListRow.setSelected(cb.isChecked());
+                    CheckBox checkBox = (CheckBox) v;
+                    CheckboxListRow checkboxListRow = (CheckboxListRow) checkBox.getTag();
+                    checkboxListRow.setSelected(checkBox.isChecked());
                 }
             });
         } else {
@@ -67,17 +90,18 @@ public class SelectArrayAdapter extends ArrayAdapter<CheckboxListRow> {
 
             // By using a ViewHolder, we avoid having to call findViewById().
             SelectViewHolder viewHolder = (SelectViewHolder) convertView.getTag();
-            checkBox = viewHolder.getCheckBox();
             textView = viewHolder.getTextView();
+            checkBox = viewHolder.getCheckBox();
         }
 
-        // Tag the CheckBox with the Planet it is displaying, so that we can
-        // access the checkboxListRow in onClick() when the CheckBox is toggled.
+        // Associate (tag) the CheckBox/TextView with the data they are displaying, so that we can
+        // access the checkboxListRow in onClick() when the CheckBox/TextView is toggled/tapped.
+        textView.setTag(checkboxListRow);
         checkBox.setTag(checkboxListRow);
 
         // Display checkboxListRow data
+        textView.setText(checkboxListRow.toString());
         checkBox.setChecked(checkboxListRow.isSelected());
-        textView.setText(checkboxListRow.getName());
 
         return convertView;
     }

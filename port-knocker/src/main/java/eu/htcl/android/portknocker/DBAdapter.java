@@ -23,7 +23,7 @@ public class DBAdapter {
      */
     public static final String KEY_ID = "_id";
     public static final String KEY_HOST = "host";
-    public static final String KEY_KNOCK_SEQUENCE = "sequence";
+    public static final String KEY_KNOCK_SEQUENCE = "knock_sequence";
     public static final String KEY_SELECTED = "selected";
 
     /*
@@ -53,18 +53,25 @@ public class DBAdapter {
             this.knock_sequence = knock_sequence;
         }
 
-        public String getKnockSequence() {
-            return knock_sequence;
-        }
-
-        public void setKnockSequence(String knock_sequence) {
-            this.knock_sequence = knock_sequence;
+        @Override
+        public void setName(String name) {
+            super.setName(name);
+            db.setHost(id, name);
         }
 
         @Override
         public void setSelected(boolean selected) {
             super.setSelected(selected);
             db.setSelected(id, selected);
+        }
+
+        public String getKnockSequence() {
+            return knock_sequence;
+        }
+
+        public void setKnockSequence(String knock_sequence) {
+            this.knock_sequence = knock_sequence;
+            db.setKnockSequence(id, knock_sequence);
         }
 
         @Override
@@ -104,7 +111,7 @@ public class DBAdapter {
                 + "FOR EACH ROW BEGIN "
                 + " UPDATE hosts "
                 + " SET popularity=old.popularity WHERE popularity=new.popularity; "
-                + "END;"; // I love involutive bijections!
+                + "END;";
 
         public HostdataOpenHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -188,6 +195,20 @@ public class DBAdapter {
         return hostData;
     }
 
+    public HostData getHostData(int id) {
+        Cursor c = getRawHost(id);
+
+        //int id = c.getInt(0);
+        String name = c.getString(1);
+        String knock_sequence = c.getString(2);
+        int selected = c.getInt(3);
+        HostData hostData = new HostData(this, id, name, knock_sequence, selected);
+
+        c.close();
+
+        return hostData;
+    }
+
     public int[] getHosts(long selected) {
         Cursor c = getRawHosts(1, KEY_ID);
 
@@ -212,12 +233,24 @@ public class DBAdapter {
         return host;
     }
 
+    public void setHost(long id, String host) {
+        ContentValues args = new ContentValues();
+        args.put(KEY_HOST, host);
+        db.update("hosts", args, KEY_ID + "=" + id, null);
+    }
+
     public String getKnockSequence(int id) {
         Cursor c = getRawHost(id, KEY_KNOCK_SEQUENCE);
         String knock_sequence = c.getString(0);
         c.close();
 
         return knock_sequence;
+    }
+
+    public void setKnockSequence(long id, String knock_sequence) {
+        ContentValues args = new ContentValues();
+        args.put(KEY_KNOCK_SEQUENCE, knock_sequence);
+        db.update("hosts", args, KEY_ID + "=" + id, null);
     }
 
     public boolean getSelected(long id) {
@@ -229,8 +262,9 @@ public class DBAdapter {
     }
 
     public void setSelected(long id, boolean selected) {
-        db.execSQL("UPDATE hosts SET selected = ? WHERE _id = ?",
-                new Object[]{(selected) ? 1 : 0, id});
+        ContentValues args = new ContentValues();
+        args.put(KEY_SELECTED, (selected) ? 1 : 0);
+        db.update("hosts", args, KEY_ID + "=" + id, null);
     }
 
     public Cursor getRawHost(long id) {
@@ -274,16 +308,24 @@ public class DBAdapter {
         return c;
     }
 
-    public void createHost(String host, String knock_sequence, int selected) {
+    public void createHost(String host, String knock_sequence) {
         db.execSQL("INSERT INTO hosts (host, knock_sequence, popularity, selected)"
                 + " VALUES (?, ?, ?, ?)",
-                new Object[]{host, knock_sequence, 0, selected});
+                new Object[]{host, knock_sequence, 0, 0});
     }
 
     public void updateHost(long id, String host, String knock_sequence) {
         ContentValues args = new ContentValues();
         args.put(KEY_HOST, host);
         args.put(KEY_KNOCK_SEQUENCE, knock_sequence);
+        db.update("hosts", args, KEY_ID + "=" + id, null);
+    }
+
+    public void updateHost(long id, String host, String knock_sequence, boolean selected) {
+        ContentValues args = new ContentValues();
+        args.put(KEY_HOST, host);
+        args.put(KEY_KNOCK_SEQUENCE, knock_sequence);
+        args.put(KEY_SELECTED, (selected) ? 1 : 0);
         db.update("hosts", args, KEY_ID + "=" + id, null);
     }
 

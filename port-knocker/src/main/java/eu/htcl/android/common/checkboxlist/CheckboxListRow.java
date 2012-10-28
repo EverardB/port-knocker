@@ -4,6 +4,8 @@
  */
 package eu.htcl.android.common.checkboxlist;
 
+import android.view.View;
+
 /**
  *
  * Row data encapsulation
@@ -12,6 +14,7 @@ package eu.htcl.android.common.checkboxlist;
  */
 public class CheckboxListRow {
 
+    protected SelectViewHolder viewHolder;
     protected int id = 0;
     protected String name = "";
     protected boolean selected = false;
@@ -28,6 +31,14 @@ public class CheckboxListRow {
         this.id = id;
         this.name = name;
         this.selected = selected;
+    }
+
+    public SelectViewHolder getViewHolder() {
+        return viewHolder;
+    }
+
+    public void setViewHolder(SelectViewHolder viewHolder) {
+        this.viewHolder = viewHolder;
     }
 
     public int getId() {

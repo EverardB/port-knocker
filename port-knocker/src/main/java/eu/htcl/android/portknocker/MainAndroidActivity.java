@@ -32,9 +32,9 @@ public class MainAndroidActivity extends Activity {
     //private CheckboxListView hostlistView;
     private ListView hostlistView;
     private ArrayAdapter<CheckboxListRow> listAdapter;
-    private CheckboxListRow[] listItems;
-    HostData[] hostData;
     private DBAdapter dbadapter;
+    private ArrayList<CheckboxListRow> checkboxListRows = new ArrayList<CheckboxListRow>();
+    private HostData[] hostData;
 
     /**
      * Called when the activity is first created.
@@ -55,21 +55,9 @@ public class MainAndroidActivity extends Activity {
         dbadapter = new DBAdapter(this.getApplicationContext());
         dbadapter.open();
 
-        // Get host list
-        hostData = dbadapter.getHostList();
-
-        // Create and populate host list.
-        listItems = (CheckboxListRow[]) getLastNonConfigurationInstance();
-
-        ArrayList<CheckboxListRow> checkboxList = new ArrayList<CheckboxListRow>();
-        for (int i = 0; i < hostData.length; i++) {
-            checkboxList.add(hostData[i]);
-        }
-
         // Initialise the ListView resource.
-//        hostlistView = (CheckboxListView) findViewById(R.id.hostlistView);
-//        hostlistView.initialise(this, checkboxList);
-
+        // hostlistView = (CheckboxListView) findViewById(R.id.hostlistView);
+        // hostlistView.initialise(this, checkboxList);
         hostlistView = (ListView) findViewById(R.id.hostlistView);
 
         // Register the ListView to handle a context menu
@@ -77,26 +65,22 @@ public class MainAndroidActivity extends Activity {
 
         // When item is tapped, toggle 'selected' property of CheckBox and hostname.
         hostlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
             @Override
-            public void onItemClick(AdapterView<?> parent, View item, int position, long id) {
-                CheckboxListRow row = listAdapter.getItem(position);
-                row.toggleSelected();
-                SelectViewHolder viewHolder = (SelectViewHolder) item.getTag();
-                viewHolder.getCheckBox().setChecked(row.isSelected());
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                SelectViewHolder viewHolder = (SelectViewHolder) view.getTag();
+                CheckboxListRow checkboxListRow = listAdapter.getItem(position);
+                checkboxListRow.toggleSelected();
+                viewHolder.getCheckBox().setChecked(checkboxListRow.isSelected());
             }
         });
 
-        // Set our custom array adapter as the ListView's adapter.
-        listAdapter = new SelectArrayAdapter(this, checkboxList);
-        hostlistView.setAdapter(listAdapter);
+        // Initialise the view data
+        initialiseListView();
 
         Button knockButton = (Button) findViewById(R.id.KnockButton);
-
         knockButton.setOnClickListener(new View.OnClickListener() {
-
             public void onClick(View view) {
-                startKnocking(view, DBAdapter.START_MODE);
+                startKnocking(hostlistView);
             }
         });
 
@@ -125,18 +109,24 @@ public class MainAndroidActivity extends Activity {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case R.id.edit_host:
-                editHost(info.id);
+                editHost((long) hostData[(int) info.id].getId());
+                updateListView();
+                return true;
+            case R.id.copy_host:
+                copyHost((long) hostData[(int) info.id].getId());
+                updateListView();
                 return true;
             case R.id.delete_host:
-                deleteHost(info.id);
+                deleteHost((long) hostData[(int) info.id].getId());
+                updateListView();
                 return true;
             case R.id.up:
-                dbadapter.upHost(info.id);
-                updateList();
+                dbadapter.upHost((long) hostData[(int) info.id].getId());
+                updateListView();
                 return true;
             case R.id.down:
-                dbadapter.downHost(info.id);
-                updateList();
+                dbadapter.downHost((long) hostData[(int) info.id].getId());
+                updateListView();
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -144,32 +134,69 @@ public class MainAndroidActivity extends Activity {
     }
 
     void editHost(long id) {
-        int dataId = hostData[(int) id].getId();
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Port knocking");
-        alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
-        alert.show();
+        //long dataId = (long) hostData[(int) id].getId();
+
+        //AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        //alert.setTitle("Port knocking");
+        //alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
+        //alert.show();
+
+        Intent intent = new Intent(this, EditHostActivity.class);
+        intent.putExtra(DBAdapter.KEY_ID, id);
+        intent.putExtra(EditHostActivity.OPERATION, EditHostActivity.EDIT);
+        //startActivity(intent);
+         startActivityForResult(intent, 0);
+    }
+
+    void copyHost(long id) {
+        //long dataId = (long) hostData[(int) id].getId();
+
+        //AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        //alert.setTitle("Port knocking");
+        //alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
+        //alert.show();
+
+        Intent intent = new Intent(this, EditHostActivity.class);
+        intent.putExtra(DBAdapter.KEY_ID, id);
+        intent.putExtra(EditHostActivity.OPERATION, EditHostActivity.COPY);
+        //startActivity(intent);
+         startActivityForResult(intent, 0);
     }
 
     void deleteHost(long id) {
-        int dataId = hostData[(int) id].getId();
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Port knocking");
-        alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
-        alert.show();
+        //int dataId = hostData[(int) id].getId();
+
+        //AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        //alert.setTitle("Port knocking");
+        //alert.setMessage("RowId: " + String.valueOf(id) + ", DataId: " + String.valueOf(dataId));
+        //alert.show();
+
+        // Are u sure ?
+        dbadapter.deleteHost(id);
     }
 
-    public void updateList() {
-        // TBD: Update is OK but causes NPE onItemClick()
-        if (false) {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        updateListView();
+    }
+
+    public void initialiseListView() {
+        if (true) {
+            //CheckboxListRow[] listItems;
+
+            // Get host list
             hostData = dbadapter.getHostList();
 
             // Create and populate host list.
-            listItems = (CheckboxListRow[]) getLastNonConfigurationInstance();
+            //listItems = (CheckboxListRow[]) getLastNonConfigurationInstance();
+            //checkboxListRows.clear();
+            checkboxListRows.addAll(Arrays.asList(hostData));
 
-            ArrayList<CheckboxListRow> checkboxList = new ArrayList<CheckboxListRow>();
-            checkboxList.addAll(Arrays.asList(hostData));
-
+            // Set our custom array adapter as the ListView's adapter.
+            listAdapter = new SelectArrayAdapter(this, checkboxListRows);
+            hostlistView.setAdapter(listAdapter);
+        } else {
+            // TBD: Update is OK but causes NPE onItemClick()
             Cursor hostsCursor = dbadapter.getRawHosts();
             startManagingCursor(hostsCursor);
 
@@ -179,6 +206,21 @@ public class MainAndroidActivity extends Activity {
             SimpleCursorAdapter hosts = new SimpleCursorAdapter(this, R.layout.checkbox_list_row, hostsCursor, from, to);
             hostlistView.setAdapter(hosts);
         }
+
+        updateListView();
+    }
+
+    public void updateListView() {
+        // Get host list
+        hostData = dbadapter.getHostList();
+
+        // Create and populate host list.
+        //listItems = (CheckboxListRow[]) getLastNonConfigurationInstance();
+        checkboxListRows.clear();
+        checkboxListRows.addAll(Arrays.asList(hostData));
+
+        listAdapter.notifyDataSetChanged();
+        hostlistView.invalidateViews();
     }
 
     /*
@@ -188,53 +230,46 @@ public class MainAndroidActivity extends Activity {
     private ProgressDialog d;
     private boolean success = true;
 
-    public void startKnocking(View view, int startstop) {
+    public void startKnocking(final View view) {
 
         d = ProgressDialog.show(view.getContext(), "Port knocking ...", "Please wait ...", true);
 
         new Thread(new Runnable() {
 
             public void run() {
-                HostData[] hostdata = dbadapter.getSelectedHosts();
+                for (int i = 0; i < hostData.length; i++) {
 
-                for (int i = 0; i < hostdata.length; i++) {
+                    final String host = hostData[i].getName();
+                    final String knockSequence = hostData[i].getKnockSequence();
+                    final boolean selected = hostData[i].isSelected();
 
-                    final String host = hostdata[i].getName();
-                    //final String host = "192.168.0.102";
-                    //final String host = "127.0.0.1";
+                    if ( selected ) {
+                        success = true;
+                        String[] knockSequencePortList = knockSequence.split(",");
+                        for (int sequenceId = 0; sequenceId < knockSequencePortList.length; sequenceId++) {
+                            String[] portInfo = knockSequencePortList[sequenceId].split(":");
+                            final int port = Integer.parseInt(portInfo[0]);
+                            final String protocol = portInfo[1];
 
-                    final String knockSequence = hostdata[i].getKnockSequence();
-                    //final String knockSequence = "3333:tcp,1111:udp,4444:udp";
-                    //final String String knockSequence = "3333:tcp,1111:tcp,4444:udp";
+                            mHandler.post(new Runnable() {
+                                public void run() {
+                                    Log.i("PortKnocker", String.format("Knocking %s:%d:%s ...", host, port, protocol));
+                                    //d.setMessage(String.format("Knocking %s:%s ...", host, knockSequence));
+                                }
+                            });
 
-                    //d.setMessage(String.format("Pinging %s:%s ...", host, knockSequence));
-
-                    success = true;
-                    String[] knockSequencePortList = knockSequence.split(",");
-                    for (int sequenceId = 0; sequenceId < knockSequencePortList.length; sequenceId++) {
-                        String[] portInfo = knockSequencePortList[sequenceId].split(":");
-                        final int port = Integer.parseInt(portInfo[0]);
-                        final String protocol = portInfo[1];
-
-                        mHandler.post(new Runnable() {
-
-                            public void run() {
-                                Log.i("PortKnocker", String.format("Pinging %s:%d:%s ...", host, port, protocol));
+                            if (!Knocker.doKnock(host, port, protocol)) {
+                                success = false;
                             }
-                        });
-
-                        if (!Knocker.doKnock(host, port, protocol)) {
-                            success = false;
                         }
-                    }
 
-                    if (success) {
-                        dbadapter.setSelected(hostdata[i].getId(), false);
+                        if (success) {
+                            hostData[i].setSelected(false);
+                        }
                     }
                 }
 
                 mHandler.post(new Runnable() {
-
                     public void run() {
                         d.dismiss();
                         stopKnocking();
@@ -245,7 +280,7 @@ public class MainAndroidActivity extends Activity {
     }
 
     public void stopKnocking() {
-        updateList();
+        updateListView();
 
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Port knocking");
@@ -281,6 +316,6 @@ public class MainAndroidActivity extends Activity {
 
     @Override
     public Object onRetainNonConfigurationInstance() {
-        return listItems;
+        return hostData;
     }
 }
