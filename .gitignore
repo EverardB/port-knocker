@@ -1,4 +1,5 @@
 /.settings/
+hostdata.db
 server-list.sql
 
 /port-knocker/.settings/

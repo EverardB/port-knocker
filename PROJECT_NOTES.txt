@@ -1,0 +1,46 @@
+setup
+=====
+mvn archetype:generate \
+  -DarchetypeArtifactId=android-release \
+  -DarchetypeGroupId=de.akquinet.android.archetypes \
+  -DarchetypeVersion=1.0.8 \
+  -DgroupId=eu.htcl.android \
+  -DartifactId=port-knocker \
+  -Dpackage=eu.htcl.android.portknocker
+
+
+git-svn cheat sheet
+===================
+
+Import project from subversion repository
+-----------------------------------------
+git svn clone --trunk=trunk/PortKnocker-android --tags=tags/PortKnocker-android --branches=branches/PortKnocker-android --authors-file=/home/everard/.git-authors https://dev.htcl.eu/project/repo/port_knocker PortKnocker
+
+New branch in subversion repository
+-----------------------------------
+git svn branch -m "Create feature branch" <feature_branch>
+
+Create git branch and link to existing branch in subversion repository
+----------------------------------------------------------------------
+git checkout --track -b <feature_branch> <feature_branch>
+
+Integration
+-----------
+git merge <feature_branch>
+- OR -
+git merge --squash <feature_branch>
+
+Get latest changes from subversion repository
+---------------------------------------------
+git svn rebase
+
+Commit to subversion repository
+-------------------------------
+git svn rebase && git svn dcommit
+
+Synchronising branches
+----------------------
+git stash save && git checkout master && git svn rebase && git merge wip && git svn dcommit && git checkout wip && git rebase master && git stash pop
+OR
+git stash save && git checkout master && git svn rebase && git checkout wip && git rebase master && git stash pop
+

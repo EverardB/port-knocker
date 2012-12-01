@@ -149,6 +149,17 @@ public class DBAdapter {
         db.close();
     }
 
+    public int getNumHosts() {
+        int retval = 0;
+        Cursor c = db.query("hosts", new String[]{"COUNT(*)"}, null, null, null, null, null);
+        if (c != null) {
+            c.moveToFirst();
+            retval = c.getInt(0);
+        }
+        c.close();
+        return retval;
+    }
+
     public HostData[] getHostList() {
         HostData[] hostData = null;
 
@@ -170,7 +181,6 @@ public class DBAdapter {
         }
 
         c.close();
-
         return hostData;
     }
 
@@ -195,7 +205,6 @@ public class DBAdapter {
         }
 
         c.close();
-
         return hostData;
     }
 
@@ -209,7 +218,6 @@ public class DBAdapter {
         HostData hostData = new HostData(this, id, name, knock_sequence, selected);
 
         c.close();
-
         return hostData;
     }
 
@@ -225,16 +233,14 @@ public class DBAdapter {
         }
 
         c.close();
-
         return data;
     }
 
     public String getHost(int id) {
         Cursor c = getRawHost(id, KEY_HOST);
-        String host = c.getString(0);
+        String retval = c.getString(0);
         c.close();
-
-        return host;
+        return retval;
     }
 
     public void setHost(long id, String host) {
@@ -245,10 +251,9 @@ public class DBAdapter {
 
     public String getKnockSequence(int id) {
         Cursor c = getRawHost(id, KEY_KNOCK_SEQUENCE);
-        String knock_sequence = c.getString(0);
+        String retval = c.getString(0);
         c.close();
-
-        return knock_sequence;
+        return retval;
     }
 
     public void setKnockSequence(long id, String knock_sequence) {
@@ -259,10 +264,9 @@ public class DBAdapter {
 
     public boolean getSelected(long id) {
         Cursor c = getRawHost(id, KEY_SELECTED);
-        boolean selected = (c.getInt(0) == 0) ? false : true;
+        boolean retval = (c.getInt(0) == 0) ? false : true;
         c.close();
-
-        return selected;
+        return retval;
     }
 
     public void setSelected(long id, boolean selected) {
@@ -273,10 +277,9 @@ public class DBAdapter {
 
     public int getPopularity(long id) {
         Cursor c = getRawHost(id, KEY_POPULARITY);
-        int popularity = c.getInt(0);
+        int retval = c.getInt(0);
         c.close();
-
-        return popularity;
+        return retval;
     }
 
     public void setPopularity(long id, int popularity) {
@@ -286,27 +289,47 @@ public class DBAdapter {
     }
 
     public int getMaxPopularity() {
-        int maxPopularity = 0;
+        int retval = 0;
         Cursor c = db.query("hosts", new String[]{"MAX(popularity)"}, null, null, null, null, null);
         if (c != null) {
             c.moveToFirst();
-            maxPopularity = c.getInt(0);
+            retval = c.getInt(0);
         }
         c.close();
+        return retval;
+    }
 
-        return maxPopularity;
+    private int getNumAtPopularity(int popularity) {
+        int retval = 0;
+        Cursor c = db.query("hosts", new String[]{"COUNT(*)"}, "popularity = " + String.valueOf(popularity), null, null, null, null);
+        if (c != null) {
+            c.moveToFirst();
+            retval = c.getInt(0);
+        }
+        c.close();
+        return retval;
     }
 
     public int getNumAtMaxPopularity() {
-        int maxPopularity = 0;
-        Cursor c = db.query("hosts", new String[]{"COUNT(*)"}, "popularity = (SELECT MAX(popularity) FROM hosts)", null, null, null, null);
-        if (c != null) {
-            c.moveToFirst();
-            maxPopularity = c.getInt(0);
-        }
-        c.close();
+        int retval = 0;
+        int maxPopularity = getMaxPopularity();
 
-        return maxPopularity;
+        retval = getNumAtPopularity(maxPopularity);
+
+        return retval;
+    }
+
+    public int getSecondHighestPopularity() {
+        int maxPopularity = getMaxPopularity();
+        int popularity = maxPopularity;
+        int count = 0;
+
+        while (popularity > 0 && count == 0) {
+            popularity--;
+            count = getNumAtPopularity(popularity);
+        }
+
+        return popularity;
     }
 
     public Cursor getRawHost(long id) {
@@ -353,7 +376,7 @@ public class DBAdapter {
     public void createHost(String host, String knock_sequence) {
         db.execSQL("INSERT INTO hosts (host, knock_sequence, popularity, selected)"
                 + " VALUES (?, ?, ?, ?)",
-                new Object[]{host, knock_sequence, 0, 0});
+                new Object[]{host, knock_sequence, getMaxPopularity(), 0});
     }
 
     public void updateHost(long id, String host, String knock_sequence) {
@@ -376,16 +399,18 @@ public class DBAdapter {
     }
 
     public void upHostPopularity(long id) {
+        int totalHosts = getNumHosts();
         int currentPopularity = getPopularity(id);
         int maxPopularity = getMaxPopularity();
+        int secondHighestPopularity = getSecondHighestPopularity();
         int numAtMaxPopularity = getNumAtMaxPopularity();
+        //int numAtSecondHighestPopularity = getNumAtPopularity(secondHighestPopularity);
 
-        if ( (currentPopularity == maxPopularity) &&
-             ((numAtMaxPopularity == 1) || (currentPopularity != 0)) ) {
-            // Do nothing if this item is already most popular
-            // return;
-        } else {
-            setPopularity(id, (currentPopularity+1)) ;
+        if ( // TBD: This is logic needs to be reviewed
+                (currentPopularity < totalHosts) // absolute maximum limit
+                && !(currentPopularity == maxPopularity && secondHighestPopularity == (currentPopularity - 1) && numAtMaxPopularity == 1) // Avoid breakaway items
+                ) {
+            setPopularity(id, (currentPopularity + 1));
         }
     }
 
