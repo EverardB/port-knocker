@@ -282,7 +282,11 @@ public class MainAndroidActivity extends Activity {
 
                         if (success) {
                             hostData[i].setSelected(false);
-                            dbadapter.upHostPopularity(hostData[i].getId());
+
+                            int id = hostData[i].getId();
+                            if( dbadapter.getPopularity(id) <  dbadapter.getMaxPopularity() ) {
+                                dbadapter.upHostPopularity(id);
+                            }
                         }
                     }
                 }
