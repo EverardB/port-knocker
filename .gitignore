@@ -3,8 +3,11 @@ hostdata.db
 server-list.sql
 
 /port-knocker/.settings/
+/port-knocker/bin/
 /port-knocker/target/
 
+
 /port-knocker-it/.settings/
+/port-knocker-it/bin/
 /port-knocker-it/target/
 
